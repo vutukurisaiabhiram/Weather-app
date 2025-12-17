@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>Weather Forecast</h1>
+            <p class="subtitle">Check the Weather Anywhere</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            
+            <p class="demo-info">Demo: Use any username and password</p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardContainer" class="dashboard-container" style="display: none;">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <h1 class="logo">🌤️ Weather Forecast</h1>
+                <div class="nav-right">
+                    <span id="userDisplay" class="user-display"></span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Location Control Section -->
+            <div class="location-control">
+                <div class="location-header">
+                    <h3>Locations</h3>
+                </div>
+                <div class="location-buttons">
+                    <button id="currentLocBtn" class="btn-location btn-current">📍 Current Location</button>
+                    <button id="favoritesToggle" class="btn-location">⭐ Saved Locations</button>
+                </div>
+                <div id="favoritesList" class="favorites-list" style="display: none;">
+                    <div class="favorites-header">
+                        <h4>Saved Locations</h4>
+                    </div>
+                    <div id="favoritesContainer" class="favorites-container">
+                        <p class="empty-message">No saved locations yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="cityInput" placeholder="Search for a city..." class="city-input">
+                    <button id="searchBtn" class="btn-search">Search</button>
+                    <button id="addFavBtn" class="btn-add-fav" title="Add to favorites">❤️</button>
+                </div>
+            </div>
+
+            <!-- Location Info -->
+            <div class="location-info">
+                <span id="locationCoords" class="location-coords">--</span>
+                <span id="lastUpdate" class="last-update">Last updated: --</span>
+            </div>
+
+            <!-- Current Weather -->
+            <div class="current-weather" id="currentWeather">
+                <div class="weather-header">
+                    <h2 id="cityName">Loading...</h2>
+                    <p id="currentTemp" class="temp">--°C</p>
+                    <p id="weatherDesc" class="description">--</p>
+                </div>
+                <span id="weatherIcon" class="weather-icon">🌡️</span>
+            </div>
+
+            <!-- Weather Modules Grid -->
+            <div class="modules-grid">
+                <!-- Temperature Module -->
+                <div class="weather-module">
+                    <div class="module-header">🌡️ Temperature</div>
+                    <div class="module-content">
+                        <div class="value-pair">
+                            <span class="label">Current</span>
+                            <span id="tempCurrent" class="value">--°C</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Feels Like</span>
+                            <span id="tempFeels" class="value">--°C</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Max/Min</span>
+                            <span id="tempMinMax" class="value">--°C / --°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Humidity Module -->
+                <div class="weather-module">
+                    <div class="module-header">💧 Humidity</div>
+                    <div class="module-content">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="humidityBar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="humidityValue" class="percentage">--%</span>
+                        </div>
+                        <p class="info-text" id="humidityStatus">--</p>
+                    </div>
+                </div>
+
+                <!-- Wind Module -->
+                <div class="weather-module">
+                    <div class="module-header">💨 Wind</div>
+                    <div class="module-content">
+                        <div class="value-pair">
+                            <span class="label">Speed</span>
+                            <span id="windSpeed" class="value">-- m/s</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Direction</span>
+                            <span id="windDirection" class="value">--</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Gust</span>
+                            <span id="windGust" class="value">-- m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Air Quality Module -->
+                <div class="weather-module">
+                    <div class="module-header">💨 Air Quality</div>
+                    <div class="module-content">
+                        <div class="air-quality-index">
+                            <span id="aqiValue" class="aqi-number">--</span>
+                            <span id="aqiStatus" class="aqi-status">--</span>
+                        </div>
+                        <div class="pollutants">
+                            <div class="pollutant">
+                                <span class="pollutant-name">PM2.5</span>
+                                <span id="pm25" class="pollutant-value">-- μg/m³</span>
+                            </div>
+                            <div class="pollutant">
+                                <span class="pollutant-name">PM10</span>
+                                <span id="pm10" class="pollutant-value">-- μg/m³</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rain Chances Module -->
+                <div class="weather-module">
+                    <div class="module-header">🌧️ Precipitation</div>
+                    <div class="module-content">
+                        <div class="value-pair">
+                            <span class="label">Rain Probability</span>
+                            <span id="rainChance" class="value">--%</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Rain Amount</span>
+                            <span id="rainAmount" class="value">-- mm</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Snow Amount</span>
+                            <span id="snowAmount" class="value">-- mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pressure Module -->
+                <div class="weather-module">
+                    <div class="module-header">🔵 Pressure</div>
+                    <div class="module-content">
+                        <div class="value-pair">
+                            <span class="label">Pressure</span>
+                            <span id="pressure" class="value">-- hPa</span>
+                        </div>
+                        <div class="value-pair">
+                            <span class="label">Sea Level</span>
+                            <span id="seaLevel" class="value">-- hPa</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UV Index Module -->
+                <div class="weather-module">
+                    <div class="module-header">☀️ UV Index</div>
+                    <div class="module-content">
+                        <div class="uv-index">
+                            <span id="uvIndex" class="uv-number">--</span>
+                        </div>
+                        <p id="uvStatus" class="info-text">--</p>
+                        <p class="warning">Wear sunscreen if UV is 3+</p>
+                    </div>
+                </div>
+
+                <!-- Visibility Module -->
+                <div class="weather-module">
+                    <div class="module-header">👁️ Visibility</div>
+                    <div class="module-content">
+                        <div class="value-pair">
+                            <span class="label">Distance</span>
+                            <span id="visibility" class="value">-- km</span>
+                        </div>
+                        <p id="visibilityStatus" class="info-text">--</p>
+                    </div>
+                </div>
+
+                <!-- Cloudiness Module -->
+                <div class="weather-module">
+                    <div class="module-header">☁️ Cloudiness</div>
+                    <div class="module-content">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="cloudsBar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="cloudsValue" class="percentage">--%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forecast -->
+            <div class="forecast-section">
+                <h2>📅 5-Day Forecast</h2>
+                <div id="forecastGrid" class="forecast-grid">
+                    <p class="loading">Loading forecast...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
