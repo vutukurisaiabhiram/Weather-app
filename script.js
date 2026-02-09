@@ -2,39 +2,199 @@
 const loginContainer = document.getElementById('loginContainer');
 const dashboardContainer = document.getElementById('dashboardContainer');
 const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
 const logoutBtn = document.getElementById('logoutBtn');
 const userDisplay = document.getElementById('userDisplay');
 
+const API_URL = 'http://localhost:5000/api/auth';
+
 window.addEventListener('load', () => {
+    const savedToken = localStorage.getItem('weatherAppToken');
     const savedUser = localStorage.getItem('weatherAppUser');
-    if (savedUser) {
-        loginUser(savedUser);
+    if (savedToken && savedUser) {
+        userDisplay.textContent = `Welcome, ${savedUser}!`;
+        loginContainer.style.display = 'none';
+        dashboardContainer.style.display = 'block';
+        loadCurrentLocation();
     }
 });
 
-loginForm.addEventListener('submit', (e) => {
+function toggleRegister(e) {
     e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    if (username && password) {
-        loginUser(username);
+    const loginFormEl = document.getElementById('loginForm');
+    const registerFormEl = document.getElementById('registerForm');
+    const toggleText = document.getElementById('toggleText');
+    
+    if (registerFormEl.style.display === 'none') {
+        loginFormEl.style.display = 'none';
+        registerFormEl.style.display = 'block';
+        toggleText.innerHTML = 'Already have an account? <a href="#" onclick="toggleRegister(event)">Login here</a>';
+    } else {
+        loginFormEl.style.display = 'block';
+        registerFormEl.style.display = 'none';
+        toggleText.innerHTML = 'Don\'t have an account? <a href="#" onclick="toggleRegister(event)">Register here</a>';
     }
-});
-
-function loginUser(username) {
-    localStorage.setItem('weatherAppUser', username);
-    userDisplay.textContent = `Welcome, ${username}!`;
-    loginContainer.style.display = 'none';
-    dashboardContainer.style.display = 'block';
-    loadCurrentLocation();
 }
 
-logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('weatherAppUser');
-    loginContainer.style.display = 'flex';
-    dashboardContainer.style.display = 'none';
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    if (!username || !password) {
+        alert('❌ Please enter both username and password');
+        return;
+    }
+    
+    await loginUser(username, password);
+});
+
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('regUsername').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value.trim();
+    const passwordConfirm = document.getElementById('regPasswordConfirm').value.trim();
+    
+    if (!username || !email || !password || !passwordConfirm) {
+        alert('❌ Please fill in all fields');
+        return;
+    }
+    
+    if (password !== passwordConfirm) {
+        alert('❌ Passwords do not match');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('❌ Password must be at least 6 characters');
+        return;
+    }
+    
+    await registerUser(username, email, password, passwordConfirm);
+});
+
+async function registerUser(username, email, password, passwordConfirm) {
+    try {
+        const registerBtn = document.querySelector('#registerForm .btn-login');
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Registering...';
+        
+        const response = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password, passwordConfirm })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            alert(`❌ ${data.message || 'Registration failed'}`);
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Register';
+            return;
+        }
+        
+        alert(`✅ Registration successful! Welcome ${data.user.username}`);
+        
+        // Store token and user info
+        localStorage.setItem('weatherAppToken', data.token);
+        localStorage.setItem('weatherAppUser', data.user.username);
+        
+        userDisplay.textContent = `Welcome, ${data.user.username}!`;
+        loginContainer.style.display = 'none';
+        dashboardContainer.style.display = 'block';
+        
+        document.getElementById('regUsername').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regPasswordConfirm').value = '';
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register';
+        
+        loadCurrentLocation();
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('❌ Connection error. Make sure the backend server is running on port 5000');
+        const registerBtn = document.querySelector('#registerForm .btn-login');
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register';
+    }
+}
+
+async function loginUser(username, password) {
+    try {
+        const loginBtn = document.querySelector('.btn-login');
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+        
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            alert(`❌ ${data.message || 'Login failed'}`);
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+            return;
+        }
+        
+        // Store token and user info
+        localStorage.setItem('weatherAppToken', data.token);
+        localStorage.setItem('weatherAppUser', data.user.username);
+        
+        userDisplay.textContent = `Welcome, ${data.user.username}!`;
+        loginContainer.style.display = 'none';
+        dashboardContainer.style.display = 'block';
+        
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+        
+        loadCurrentLocation();
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('❌ Connection error. Make sure the backend server is running on port 5000');
+        const loginBtn = document.querySelector('.btn-login');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+    }
+}
+
+logoutBtn.addEventListener('click', async () => {
+    try {
+        const token = localStorage.getItem('weatherAppToken');
+        
+        await fetch(`${API_URL}/logout`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        localStorage.removeItem('weatherAppToken');
+        localStorage.removeItem('weatherAppUser');
+        loginContainer.style.display = 'flex';
+        dashboardContainer.style.display = 'none';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+    } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('weatherAppToken');
+        localStorage.removeItem('weatherAppUser');
+        loginContainer.style.display = 'flex';
+        dashboardContainer.style.display = 'none';
+    }
 });
 
 // ============ LOCATION & UI ELEMENTS ============
@@ -58,17 +218,23 @@ displayFavorites();
 
 searchBtn.addEventListener('click', () => {
     const city = cityInput.value.trim();
-    if (city) {
-        searchWeatherByCity(city);
+    if (!city) {
+        alert('Please enter a city name to search.');
+        cityInput.focus();
+        return;
     }
+    searchWeatherByCity(city);
 });
 
 cityInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         const city = cityInput.value.trim();
-        if (city) {
-            searchWeatherByCity(city);
+        if (!city) {
+            alert('Please enter a city name to search.');
+            cityInput.focus();
+            return;
         }
+        searchWeatherByCity(city);
     }
 });
 
@@ -77,7 +243,7 @@ currentLocBtn.addEventListener('click', () => {
 });
 
 favoritesToggle.addEventListener('click', () => {
-    favoritesContainer.style.display = favoritesContainer.style.display === 'none' ? 'block' : 'none';
+    favoritesList.style.display = favoritesList.style.display === 'none' ? 'block' : 'none';
 });
 
 addFavBtn.addEventListener('click', () => {
@@ -114,7 +280,11 @@ function removeFavorite(index) {
 }
 
 function displayFavorites() {
-    favoritesList.innerHTML = '';
+    favoritesContainer.innerHTML = '';
+    if (favorites.length === 0) {
+        favoritesContainer.innerHTML = '<p class="empty-message">No saved locations yet</p>';
+        return;
+    }
     favorites.forEach((fav, index) => {
         const div = document.createElement('div');
         div.className = 'favorite-item';
@@ -122,7 +292,7 @@ function displayFavorites() {
             <span onclick="loadFavoriteLocation(${fav.lat}, ${fav.lon})">${fav.city}</span>
             <button onclick="removeFavorite(${index})">✕</button>
         `;
-        favoritesList.appendChild(div);
+        favoritesContainer.appendChild(div);
     });
 }
 
@@ -220,7 +390,13 @@ async function searchWeatherByCity(city) {
         if (!geoResponse.ok) throw new Error(`City "${city}" not found`);
         
         const geoData = await geoResponse.json();
-        if (!geoData || geoData.length === 0) throw new Error(`City "${city}" not found`);
+        if (!geoData || geoData.length === 0) {
+            alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
+            searchBtn.disabled = false;
+            searchBtn.textContent = '🔍 Search';
+            cityInput.value = '';
+            return;
+        }
         
         const location = geoData[0];
         const latitude = parseFloat(location.lat);
@@ -245,9 +421,10 @@ async function searchWeatherByCity(city) {
         
     } catch (error) {
         console.error('Error:', error);
-        alert(`"${city}" not found. Try another city.`);
+        alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
         searchBtn.disabled = false;
         searchBtn.textContent = '🔍 Search';
+        cityInput.value = '';
     }
 }
 

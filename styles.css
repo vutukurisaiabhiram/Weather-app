@@ -230,6 +230,24 @@ body::before {
     font-size: 12px;
 }
 
+.demo-info a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.demo-info a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.info-text {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+}
+
 /* ============ DASHBOARD SECTION ============ */
 
 .dashboard-container {
