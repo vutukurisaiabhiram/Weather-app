@@ -78,6 +78,26 @@ POST /api/auth/logout
 Authorization: Bearer <token>
 ```
 
+## 🚀 Deployment
+
+Ready to deploy your weather app? Follow our complete deployment guide:
+
+### **[→ See DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**
+
+**Quick Overview:**
+- **Frontend:** Deploy to Vercel (free)
+- **Backend:** Deploy to Render or Railway (free)
+- **Database:** MongoDB Atlas (free tier)
+- **Total Cost:** $0/month! 🎉
+
+**Tools & Services:**
+- Vercel - Fast, automatic deployments
+- Render/Railway - Free backend hosting
+- MongoDB Atlas - Cloud database
+- All with free tiers for production apps
+
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for step-by-step instructions!
+
 ## 📁 Project Structure
 
 ```

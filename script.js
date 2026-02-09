@@ -6,7 +6,10 @@ const registerForm = document.getElementById('registerForm');
 const logoutBtn = document.getElementById('logoutBtn');
 const userDisplay = document.getElementById('userDisplay');
 
-const API_URL = 'http://localhost:5000/api/auth';
+// API URL - automatically detects environment
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api/auth'
+    : 'https://weather-app-backend.onrender.com/api/auth'; // Replace with your deployed backend URL
 
 window.addEventListener('load', () => {
     const savedToken = localStorage.getItem('weatherAppToken');
