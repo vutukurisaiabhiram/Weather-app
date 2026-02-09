@@ -465,6 +465,32 @@ async function getLocationName(lat, lon) {
     }
 }
 
+// Validate if location is a real city/town/village (not random places)
+function isValidLocation(location) {
+    const validTypes = ['city', 'town', 'village', 'borough', 'municipality', 'settlement', 'capital', 'administrative'];
+    const validClasses = ['place', 'boundary', 'landuse'];
+    
+    const locType = (location.type || '').toLowerCase();
+    const locClass = (location.class || '').toLowerCase();
+    
+    // Check if it's a valid location type or class
+    const isValidType = validTypes.some(type => locType.includes(type));
+    const isValidClass = validClasses.includes(locClass);
+    
+    // Must be either a valid type OR a valid class (but class 'place' is best)
+    if (locClass === 'place' && isValidType) {
+        return true;
+    }
+    
+    // Also accept administrative boundaries if they're cities/towns
+    if (locClass === 'boundary' && (locType.includes('city') || locType.includes('town') || locType.includes('administrative'))) {
+        return true;
+    }
+    
+    // Reject everything else (names, random places, etc.)
+    return false;
+}
+
 async function searchWeatherByCity(city) {
     try {
         searchBtn.disabled = true;
@@ -474,7 +500,7 @@ async function searchWeatherByCity(city) {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const geoResponse = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=10`,
             { signal: controller.signal }
         );
         clearTimeout(timeoutId);
@@ -483,7 +509,7 @@ async function searchWeatherByCity(city) {
         
         const geoData = await geoResponse.json();
         if (!geoData || geoData.length === 0) {
-            alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
+            alert(`❌ Invalid input: "${city}" is not a valid city name. Please enter a real city (e.g., London, Paris, New York).`);
             clearWeatherDisplay();
             searchBtn.disabled = false;
             searchBtn.textContent = '🔍 Search';
@@ -491,7 +517,26 @@ async function searchWeatherByCity(city) {
             return;
         }
         
-        const location = geoData[0];
+        // Find the first VALID location (city/town/village)
+        let validLocation = null;
+        for (let loc of geoData) {
+            if (isValidLocation(loc)) {
+                validLocation = loc;
+                break;
+            }
+        }
+        
+        // If no valid location found, reject the search
+        if (!validLocation) {
+            alert(`❌ Invalid input: "${city}" is not a valid city name. Please enter a real city (e.g., London, Paris, New York).`);
+            clearWeatherDisplay();
+            searchBtn.disabled = false;
+            searchBtn.textContent = '🔍 Search';
+            cityInput.value = '';
+            return;
+        }
+        
+        const location = validLocation;
         const latitude = parseFloat(location.lat);
         const longitude = parseFloat(location.lon);
         
@@ -514,7 +559,7 @@ async function searchWeatherByCity(city) {
         
     } catch (error) {
         console.error('Error:', error);
-        alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
+        alert(`❌ Invalid input: "${city}" is not a valid city name. Please enter a real city (e.g., London, Paris, New York).`);
         clearWeatherDisplay();
         searchBtn.disabled = false;
         searchBtn.textContent = '🔍 Search';
