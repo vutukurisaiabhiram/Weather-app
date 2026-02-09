@@ -85,10 +85,10 @@ Ready to deploy your weather app? Follow our complete deployment guide:
 ### **[→ See DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**
 
 **Quick Overview:**
-- **Frontend:** Deploy to Vercel (free)
-- **Backend:** Deploy to Render or Railway (free)
-- **Database:** MongoDB Atlas (free tier)
-- **Total Cost:** $0/month! 🎉
+- **Frontend:** Deploy to Vercel 
+- **Backend:** Deploy to Render or Railway 
+- **Database:** MongoDB Atlas 
+- **Total Cost:** $0
 
 **Tools & Services:**
 - Vercel - Fast, automatic deployments
