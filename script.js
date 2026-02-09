@@ -484,6 +484,7 @@ async function searchWeatherByCity(city) {
         const geoData = await geoResponse.json();
         if (!geoData || geoData.length === 0) {
             alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
+            clearWeatherDisplay();
             searchBtn.disabled = false;
             searchBtn.textContent = '🔍 Search';
             cityInput.value = '';
@@ -514,10 +515,46 @@ async function searchWeatherByCity(city) {
     } catch (error) {
         console.error('Error:', error);
         alert(`❌ Invalid city: "${city}" not found. Please enter a valid city name.`);
+        clearWeatherDisplay();
         searchBtn.disabled = false;
         searchBtn.textContent = '🔍 Search';
         cityInput.value = '';
     }
+}
+
+// Clear weather display when city is not found
+function clearWeatherDisplay() {
+    document.getElementById('cityName').textContent = '--';
+    document.getElementById('currentTemp').textContent = '--°C';
+    document.getElementById('weatherDesc').textContent = '--';
+    document.getElementById('weatherIcon').textContent = '🌡️';
+    locationCoords.textContent = '📍 --';
+    lastUpdate.textContent = 'Last updated: --';
+    
+    // Clear all weather modules
+    document.getElementById('tempCurrent').textContent = '--°C';
+    document.getElementById('tempFeels').textContent = '--°C';
+    document.getElementById('tempMinMax').textContent = '--°C / --°C';
+    document.getElementById('humidityValue').textContent = '--%';
+    document.getElementById('humidityStatus').textContent = '--';
+    document.getElementById('windSpeed').textContent = '-- m/s';
+    document.getElementById('windDirection').textContent = '--';
+    document.getElementById('windGust').textContent = '-- m/s';
+    document.getElementById('aqiValue').textContent = '--';
+    document.getElementById('aqiStatus').textContent = '--';
+    document.getElementById('rainChance').textContent = '--%';
+    document.getElementById('rainAmount').textContent = '-- mm';
+    document.getElementById('snowAmount').textContent = '-- mm';
+    document.getElementById('pressure').textContent = '-- hPa';
+    document.getElementById('seaLevel').textContent = '-- hPa';
+    document.getElementById('uvIndex').textContent = '--';
+    document.getElementById('uvStatus').textContent = '--';
+    document.getElementById('visibility').textContent = '-- km';
+    document.getElementById('visibilityStatus').textContent = '--';
+    
+    // Clear forecast
+    const forecastGrid = document.getElementById('forecastGrid');
+    forecastGrid.innerHTML = '<p class="loading">No forecast available</p>';
 }
 
 // ============ UPDATE ALL WEATHER DATA ============
