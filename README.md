@@ -34,7 +34,7 @@ npm run dev
 ```
 
 #### 2. Frontend Setup
-Open `weather website.html` in your browser or use Live Server extension in VS Code.
+Open `index.html` in your browser or use Live Server extension in VS Code.
 
 **Note:** Make sure backend server is running before accessing the frontend!
 

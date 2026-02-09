@@ -1,0 +1,12 @@
+# Don't ignore frontend files
+!index.html
+!script.js
+!styles.css
+
+# Ignore backend and other folders
+backend/
+node_modules/
+.git/
+.env
+.env.local
+*.log
