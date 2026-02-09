@@ -9,7 +9,10 @@ const userDisplay = document.getElementById('userDisplay');
 // API URL - automatically detects environment
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api/auth'
-    : 'https://weather-app-backend.onrender.com/api/auth'; // Replace with your deployed backend URL
+    : 'https://weather-app-backend.onrender.com/api/auth';
+
+// Demo mode - allows testing without backend
+const DEMO_MODE = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
 window.addEventListener('load', () => {
     const savedToken = localStorage.getItem('weatherAppToken');
@@ -83,6 +86,29 @@ async function registerUser(username, email, password, passwordConfirm) {
         registerBtn.disabled = true;
         registerBtn.textContent = 'Registering...';
         
+        // DEMO MODE: Allow registration without backend
+        if (DEMO_MODE) {
+            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
+            localStorage.setItem('weatherAppUser', username);
+            
+            alert(`✅ Welcome ${username}! (Demo Mode - No backend required)`);
+            userDisplay.textContent = `Welcome, ${username}!`;
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            loginContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regPasswordConfirm').value = '';
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Register';
+            
+            loadCurrentLocation();
+            return;
+        }
+        
         const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: {
@@ -102,7 +128,6 @@ async function registerUser(username, email, password, passwordConfirm) {
         
         alert(`✅ Registration successful! Welcome ${data.user.username}`);
         
-        // Store token and user info
         localStorage.setItem('weatherAppToken', data.token);
         localStorage.setItem('weatherAppUser', data.user.username);
         
@@ -120,6 +145,30 @@ async function registerUser(username, email, password, passwordConfirm) {
         loadCurrentLocation();
     } catch (error) {
         console.error('Registration error:', error);
+        
+        // DEMO MODE: Allow even if backend is down
+        if (DEMO_MODE) {
+            const registerBtn = document.querySelector('#registerForm .btn-login');
+            const username = document.getElementById('regUsername').value.trim();
+            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
+            localStorage.setItem('weatherAppUser', username);
+            
+            alert(`✅ Welcome ${username}! (Demo Mode - Backend coming soon)`);
+            userDisplay.textContent = `Welcome, ${username}!`;
+            loginContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regPasswordConfirm').value = '';
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'Register';
+            
+            loadCurrentLocation();
+            return;
+        }
+        
         alert('❌ Connection error. Make sure the backend server is running on port 5000');
         const registerBtn = document.querySelector('#registerForm .btn-login');
         registerBtn.disabled = false;
@@ -132,6 +181,24 @@ async function loginUser(username, password) {
         const loginBtn = document.querySelector('.btn-login');
         loginBtn.disabled = true;
         loginBtn.textContent = 'Logging in...';
+        
+        // DEMO MODE: Allow login without backend
+        if (DEMO_MODE) {
+            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
+            localStorage.setItem('weatherAppUser', username);
+            
+            userDisplay.textContent = `Welcome, ${username}!`;
+            loginContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+            
+            loadCurrentLocation();
+            return;
+        }
         
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
@@ -150,7 +217,6 @@ async function loginUser(username, password) {
             return;
         }
         
-        // Store token and user info
         localStorage.setItem('weatherAppToken', data.token);
         localStorage.setItem('weatherAppUser', data.user.username);
         
@@ -166,6 +232,26 @@ async function loginUser(username, password) {
         loadCurrentLocation();
     } catch (error) {
         console.error('Login error:', error);
+        
+        // DEMO MODE: Allow login even if backend is down
+        if (DEMO_MODE) {
+            const loginBtn = document.querySelector('.btn-login');
+            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
+            localStorage.setItem('weatherAppUser', username);
+            
+            userDisplay.textContent = `Welcome, ${username}!`;
+            loginContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+            
+            loadCurrentLocation();
+            return;
+        }
+        
         alert('❌ Connection error. Make sure the backend server is running on port 5000');
         const loginBtn = document.querySelector('.btn-login');
         loginBtn.disabled = false;
@@ -177,13 +263,16 @@ logoutBtn.addEventListener('click', async () => {
     try {
         const token = localStorage.getItem('weatherAppToken');
         
-        await fetch(`${API_URL}/logout`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        // Skip API call in demo mode
+        if (!DEMO_MODE) {
+            await fetch(`${API_URL}/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
         
         localStorage.removeItem('weatherAppToken');
         localStorage.removeItem('weatherAppUser');

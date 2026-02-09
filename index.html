@@ -58,7 +58,13 @@
             </p>
             
             <p class="info-text" style="font-size: 12px; color: #666; margin-top: 10px;">
-                ⚠️ Backend server must be running on port 5000 for login/registration to work
+                <script>
+                    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                        document.write('🎯 <strong>DEMO MODE</strong> - Use any username/password to test the app!');
+                    } else {
+                        document.write('⚠️ Backend server must be running on port 5000 for login to work');
+                    }
+                </script>
             </p>
         </div>
     </div>
