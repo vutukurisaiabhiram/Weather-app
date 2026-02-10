@@ -1,23 +1,13 @@
-// ============ LOGIN SYSTEM ============
+// ============ SIMPLE NAME LOGIN ============
 const loginContainer = document.getElementById('loginContainer');
 const dashboardContainer = document.getElementById('dashboardContainer');
 const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
 const logoutBtn = document.getElementById('logoutBtn');
 const userDisplay = document.getElementById('userDisplay');
 
-// API URL - automatically detects environment
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api/auth'
-    : 'https://weather-app-backend.onrender.com/api/auth';
-
-// Demo mode - allows testing without backend
-const DEMO_MODE = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-
 window.addEventListener('load', () => {
-    const savedToken = localStorage.getItem('weatherAppToken');
     const savedUser = localStorage.getItem('weatherAppUser');
-    if (savedToken && savedUser) {
+    if (savedUser) {
         userDisplay.textContent = `Welcome, ${savedUser}!`;
         loginContainer.style.display = 'none';
         dashboardContainer.style.display = 'block';
@@ -25,268 +15,32 @@ window.addEventListener('load', () => {
     }
 });
 
-function toggleRegister(e) {
+loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const loginFormEl = document.getElementById('loginForm');
-    const registerFormEl = document.getElementById('registerForm');
-    const toggleText = document.getElementById('toggleText');
+    const name = document.getElementById('username').value.trim();
     
-    if (registerFormEl.style.display === 'none') {
-        loginFormEl.style.display = 'none';
-        registerFormEl.style.display = 'block';
-        toggleText.innerHTML = 'Already have an account? <a href="#" onclick="toggleRegister(event)">Login here</a>';
-    } else {
-        loginFormEl.style.display = 'block';
-        registerFormEl.style.display = 'none';
-        toggleText.innerHTML = 'Don\'t have an account? <a href="#" onclick="toggleRegister(event)">Register here</a>';
-    }
-}
-
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    
-    if (!username || !password) {
-        alert('❌ Please enter both username and password');
+    if (!name) {
+        alert('❌ Please enter your name');
         return;
     }
     
-    await loginUser(username, password);
+    // Store name locally (no database needed)
+    localStorage.setItem('weatherAppUser', name);
+    
+    userDisplay.textContent = `Welcome, ${name}!`;
+    loginContainer.style.display = 'none';
+    dashboardContainer.style.display = 'block';
+    
+    document.getElementById('username').value = '';
+    
+    loadCurrentLocation();
 });
 
-registerForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('regUsername').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value.trim();
-    const passwordConfirm = document.getElementById('regPasswordConfirm').value.trim();
-    
-    if (!username || !email || !password || !passwordConfirm) {
-        alert('❌ Please fill in all fields');
-        return;
-    }
-    
-    if (password !== passwordConfirm) {
-        alert('❌ Passwords do not match');
-        return;
-    }
-    
-    if (password.length < 6) {
-        alert('❌ Password must be at least 6 characters');
-        return;
-    }
-    
-    await registerUser(username, email, password, passwordConfirm);
-});
-
-async function registerUser(username, email, password, passwordConfirm) {
-    try {
-        const registerBtn = document.querySelector('#registerForm .btn-login');
-        registerBtn.disabled = true;
-        registerBtn.textContent = 'Registering...';
-        
-        // DEMO MODE: Allow registration without backend
-        if (DEMO_MODE) {
-            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
-            localStorage.setItem('weatherAppUser', username);
-            
-            alert(`✅ Welcome ${username}! (Demo Mode - No backend required)`);
-            userDisplay.textContent = `Welcome, ${username}!`;
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-            loginContainer.style.display = 'none';
-            dashboardContainer.style.display = 'block';
-            
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regEmail').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regPasswordConfirm').value = '';
-            registerBtn.disabled = false;
-            registerBtn.textContent = 'Register';
-            
-            loadCurrentLocation();
-            return;
-        }
-        
-        const response = await fetch(`${API_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email, password, passwordConfirm })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            alert(`❌ ${data.message || 'Registration failed'}`);
-            registerBtn.disabled = false;
-            registerBtn.textContent = 'Register';
-            return;
-        }
-        
-        alert(`✅ Registration successful! Welcome ${data.user.username}`);
-        
-        localStorage.setItem('weatherAppToken', data.token);
-        localStorage.setItem('weatherAppUser', data.user.username);
-        
-        userDisplay.textContent = `Welcome, ${data.user.username}!`;
-        loginContainer.style.display = 'none';
-        dashboardContainer.style.display = 'block';
-        
-        document.getElementById('regUsername').value = '';
-        document.getElementById('regEmail').value = '';
-        document.getElementById('regPassword').value = '';
-        document.getElementById('regPasswordConfirm').value = '';
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'Register';
-        
-        loadCurrentLocation();
-    } catch (error) {
-        console.error('Registration error:', error);
-        
-        // DEMO MODE: Allow even if backend is down
-        if (DEMO_MODE) {
-            const registerBtn = document.querySelector('#registerForm .btn-login');
-            const username = document.getElementById('regUsername').value.trim();
-            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
-            localStorage.setItem('weatherAppUser', username);
-            
-            alert(`✅ Welcome ${username}! (Demo Mode - Backend coming soon)`);
-            userDisplay.textContent = `Welcome, ${username}!`;
-            loginContainer.style.display = 'none';
-            dashboardContainer.style.display = 'block';
-            
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regEmail').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regPasswordConfirm').value = '';
-            registerBtn.disabled = false;
-            registerBtn.textContent = 'Register';
-            
-            loadCurrentLocation();
-            return;
-        }
-        
-        alert('❌ Connection error. Make sure the backend server is running on port 5000');
-        const registerBtn = document.querySelector('#registerForm .btn-login');
-        registerBtn.disabled = false;
-        registerBtn.textContent = 'Register';
-    }
-}
-
-async function loginUser(username, password) {
-    try {
-        const loginBtn = document.querySelector('.btn-login');
-        loginBtn.disabled = true;
-        loginBtn.textContent = 'Logging in...';
-        
-        // DEMO MODE: Allow login without backend
-        if (DEMO_MODE) {
-            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
-            localStorage.setItem('weatherAppUser', username);
-            
-            userDisplay.textContent = `Welcome, ${username}!`;
-            loginContainer.style.display = 'none';
-            dashboardContainer.style.display = 'block';
-            
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-            
-            loadCurrentLocation();
-            return;
-        }
-        
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            alert(`❌ ${data.message || 'Login failed'}`);
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-            return;
-        }
-        
-        localStorage.setItem('weatherAppToken', data.token);
-        localStorage.setItem('weatherAppUser', data.user.username);
-        
-        userDisplay.textContent = `Welcome, ${data.user.username}!`;
-        loginContainer.style.display = 'none';
-        dashboardContainer.style.display = 'block';
-        
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Login';
-        
-        loadCurrentLocation();
-    } catch (error) {
-        console.error('Login error:', error);
-        
-        // DEMO MODE: Allow login even if backend is down
-        if (DEMO_MODE) {
-            const loginBtn = document.querySelector('.btn-login');
-            localStorage.setItem('weatherAppToken', 'demo_token_' + Date.now());
-            localStorage.setItem('weatherAppUser', username);
-            
-            userDisplay.textContent = `Welcome, ${username}!`;
-            loginContainer.style.display = 'none';
-            dashboardContainer.style.display = 'block';
-            
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
-            
-            loadCurrentLocation();
-            return;
-        }
-        
-        alert('❌ Connection error. Make sure the backend server is running on port 5000');
-        const loginBtn = document.querySelector('.btn-login');
-        loginBtn.disabled = false;
-        loginBtn.textContent = 'Login';
-    }
-}
-
-logoutBtn.addEventListener('click', async () => {
-    try {
-        const token = localStorage.getItem('weatherAppToken');
-        
-        // Skip API call in demo mode
-        if (!DEMO_MODE) {
-            await fetch(`${API_URL}/logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-        
-        localStorage.removeItem('weatherAppToken');
-        localStorage.removeItem('weatherAppUser');
-        loginContainer.style.display = 'flex';
-        dashboardContainer.style.display = 'none';
-        document.getElementById('username').value = '';
-        document.getElementById('password').value = '';
-    } catch (error) {
-        console.error('Logout error:', error);
-        localStorage.removeItem('weatherAppToken');
-        localStorage.removeItem('weatherAppUser');
-        loginContainer.style.display = 'flex';
-        dashboardContainer.style.display = 'none';
-    }
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('weatherAppUser');
+    loginContainer.style.display = 'flex';
+    dashboardContainer.style.display = 'none';
+    document.getElementById('username').value = '';
 });
 
 // ============ LOCATION & UI ELEMENTS ============
